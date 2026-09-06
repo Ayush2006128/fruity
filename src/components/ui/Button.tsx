@@ -1,9 +1,9 @@
 import { theme } from "@/constants/theme";
 import { Pressable, StyleSheet, View } from "react-native";
 
-export function Button({ children, onPress }: { children: React.ReactNode; onPress: () => void }) {
+export function Button({ children, onPress, color }: { children: React.ReactNode; onPress: () => void; color: string }) {
   return (
-    <Pressable style={styles.button} onPress={onPress}>
+    <Pressable style={[styles.button, { backgroundColor: color }]} onPress={onPress}>
       <View style={styles.buttonContent}>
         {children}
       </View>
@@ -13,7 +13,6 @@ export function Button({ children, onPress }: { children: React.ReactNode; onPre
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: theme.colors.primary,
     padding: 10,
     borderRadius: 5,
     borderWidth: 1,

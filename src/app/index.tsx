@@ -1,4 +1,4 @@
-import { GameCanvas } from "@/components/game/GameCanvas";
+import { GameCanvas } from "@/components/game/GameScene";
 import { Circle } from "@shopify/react-native-skia";
 
 export default function Index() {
