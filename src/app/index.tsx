@@ -1,16 +1,8 @@
-import { GameCanvas } from "@/components/game/GameScene";
-import { Circle } from "@shopify/react-native-skia";
+import { GameScene } from "@/components/game/GameScene";
 
 export default function Index() {
   return (
-    <GameCanvas>
-      <Circle
-        cx={100}
-        cy={100}
-        r={50}
-        color="red"
-      />
-    </GameCanvas>
+    <GameScene />
   );
 }
 
