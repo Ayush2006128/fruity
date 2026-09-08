@@ -11,7 +11,7 @@ export interface GameContextType {
   endGame: () => void;
 };
 
-type FruitType = "apple" | "banana" | "cherry" | "grape" | "orange" | "bomb" | "life";
+type FruitType = "apple" | "banana" | "cherry" | "grape" | "orange" | "strawberry" | "watermelon" | "pineapple" | "mango" | "bomb" | "life";
 
 export interface Fruit {
   id: string;
