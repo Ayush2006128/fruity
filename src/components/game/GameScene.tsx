@@ -38,6 +38,8 @@ function directionForDelta(
   dy: number,
   previous: SwordDirection,
 ): SwordDirection {
+  "worklet";
+
   if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return previous;
   const side = dx >= 0 ? "right" : "left";
   return Math.abs(dy) > Math.abs(dx) && dy > 0
