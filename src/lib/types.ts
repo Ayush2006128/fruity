@@ -26,6 +26,14 @@ export interface Fruit {
 
 type SwardState = "idle" | "swinging" | "cooldown";
 
+export type SwordDirection = "right" | "right-down" | "left" | "left-down";
+
+export interface TrailPoint {
+  x: number;
+  y: number;
+  opacity: number;
+}
+
 export interface Sward {
   position: { x: SharedValue<number>; y: SharedValue<number> };
   velocity: { x: SharedValue<number>; y: SharedValue<number> };
