@@ -20,8 +20,9 @@ import { useDerivedValue, useSharedValue } from "react-native-reanimated";
 import { runOnJS } from "react-native-worklets";
 
 const { width, height } = Dimensions.get("window");
-const SWORD_WIDTH = 176;
-const SWORD_HEIGHT = 164;
+const SWORD_SCALE = 0.6;
+const SWORD_WIDTH = 176 * SWORD_SCALE;
+const SWORD_HEIGHT = 164 * SWORD_SCALE;
 const HALF_WIDTH = SWORD_WIDTH / 2;
 const HALF_HEIGHT = SWORD_HEIGHT / 2;
 const TRAIL_LENGTH = 14;
@@ -62,15 +63,15 @@ export function GameScene() {
   const leftDownSword = useImage(swordSprites["left-down"]);
 
   const trailPath = useDerivedValue(() => {
-    const path = Skia.Path.Make();
+    const pathBuilder = Skia.PathBuilder.Make();
     const points = trail.value;
     if (points.length > 1) {
-      path.moveTo(points[0].x, points[0].y);
+      pathBuilder.moveTo(points[0].x, points[0].y);
       for (let index = 1; index < points.length; index += 1) {
-        path.lineTo(points[index].x, points[index].y);
+        pathBuilder.lineTo(points[index].x, points[index].y);
       }
     }
-    return path;
+    return pathBuilder.build();
   });
 
   const swordImage = useDerivedValue(() => {
