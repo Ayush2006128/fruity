@@ -4,6 +4,7 @@ type GameState = "playing" | "paused" | "gameOver";
 
 export interface GameContextType {
   score: SharedValue<number>;
+  lives: SharedValue<number>;
   gameState: SharedValue<GameState>;
   startGame: () => void;
   pauseGame: () => void;
@@ -11,10 +12,9 @@ export interface GameContextType {
   endGame: () => void;
 };
 
-type FruitType = "apple" | "banana" | "cherry" | "grape" | "orange" | "strawberry" | "watermelon" | "pineapple" | "mango" | "bomb" | "life";
+type FruitType = "apple" | "peach" | "pear" | "cherry" | "lemon" | "orange" | "strawberry" | "watermelon" | "pineapple" | "mango" | "bomb" | "life";
 
 export interface Fruit {
-  id: string;
   type: FruitType;
   position: { x: SharedValue<number>; y: SharedValue<number> };
   velocity: { x: SharedValue<number>; y: SharedValue<number> };
@@ -31,4 +31,9 @@ export interface Sward {
   velocity: { x: SharedValue<number>; y: SharedValue<number> };
   state: SharedValue<SwardState>;
   lastSwingTime: SharedValue<number>;
+};
+
+export type GameObjects = {
+  fruits: Fruit[];
+  sward: Sward;
 };

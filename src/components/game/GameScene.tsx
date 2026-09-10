@@ -2,9 +2,10 @@ import { theme } from "@/constants/theme";
 import { Canvas, Circle, Group, RoundedRect } from "@shopify/react-native-skia";
 import Matter from "matter-js";
 import { useEffect, useRef } from "react";
-import { Dimensions, StyleSheet, View, Text } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import { useDerivedValue, useSharedValue } from "react-native-reanimated";
-import { Button } from "../ui/Button";
+import { runOnJS } from "react-native-worklets";
 
 const { width, height } = Dimensions.get("window");
 const BALL_R = 30;
@@ -72,8 +73,12 @@ const boxTransform = useDerivedValue(() => [
     Matter.Body.setVelocity(ball, { x: (Math.random() - 0.5) * 10, y: 0 });
   };
 
+  const tapGesture = Gesture.Tap().onEnd(() => {
+    runOnJS(dropBall)();
+  });
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
+      <GestureDetector gesture={tapGesture}>
       <Canvas style={styles.canvas}>
         <RoundedRect x={0} y={height - 40} width={width} height={40} r={0} color="#333" />
         <Circle cx={ballX} cy={ballY} r={BALL_R} color="#ff5c5c" />
@@ -81,8 +86,8 @@ const boxTransform = useDerivedValue(() => [
           <RoundedRect x={-BOX / 2} y={-BOX / 2} width={BOX} height={BOX} r={8} color="#5c7cff" />
         </Group>
       </Canvas>
-      <Button onPress={dropBall} color={theme.colors.primary}><Text>Drop Ball</Text></Button>
-    </View>
+      </GestureDetector>
+    </GestureHandlerRootView>
   );
 }
 
