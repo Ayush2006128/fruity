@@ -100,10 +100,13 @@ export function GameScene() {
       restitution: 0,
     });
     swordRef.current = sword;
-    Matter.World.add(engine.world, sword);
+
+    const rightWall = Matter.Bodies.rectangle(width + (width * 0.05), height / 2, 10, height, { isStatic: true });
+    const leftWall = Matter.Bodies.rectangle(-width * 0.05, height / 2, 10, height, { isStatic: true });
+    Matter.World.add(engine.world, [sword, rightWall, leftWall]);
 
     return () => {
-      Matter.World.remove(engine.world, sword);
+      Matter.World.remove(engine.world, [sword, rightWall, leftWall]);
       Matter.World.clear(engine.world, false);
       Matter.Engine.clear(engine);
       swordRef.current = null;
@@ -124,8 +127,7 @@ export function GameScene() {
       lastTouchY.value = swordY.value;
     })
     .onUpdate((event) => {
-      const x = Math.max(HALF_SWORD_SIZE, Math.min(width - HALF_SWORD_SIZE, event.x));
-      const y = Math.max(HALF_SWORD_SIZE, Math.min(height - HALF_SWORD_SIZE, event.y));
+      const { x, y } = event;
       direction.value = directionForDelta(
         x - lastTouchX.value,
         y - lastTouchY.value,
