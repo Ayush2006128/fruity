@@ -20,11 +20,9 @@ import { useDerivedValue, useSharedValue } from "react-native-reanimated";
 import { runOnJS } from "react-native-worklets";
 
 const { width, height } = Dimensions.get("window");
-const SWORD_SCALE = 0.6;
-const SWORD_WIDTH = 176 * SWORD_SCALE;
-const SWORD_HEIGHT = 164 * SWORD_SCALE;
-const HALF_WIDTH = SWORD_WIDTH / 2;
-const HALF_HEIGHT = SWORD_HEIGHT / 2;
+const SWORD_SCALE = 0.4;
+const SWORD_SIZE = 176 * SWORD_SCALE;
+const HALF_SWORD_SIZE = SWORD_SIZE / 2;
 const TRAIL_LENGTH = 14;
 
 const swordSprites: Record<SwordDirection, number> = {
@@ -87,13 +85,13 @@ export function GameScene() {
     }
   });
 
-  const swordImageX = useDerivedValue(() => swordX.value - HALF_WIDTH);
-  const swordImageY = useDerivedValue(() => swordY.value - HALF_HEIGHT);
+  const swordImageX = useDerivedValue(() => swordX.value - HALF_SWORD_SIZE);
+  const swordImageY = useDerivedValue(() => swordY.value - HALF_SWORD_SIZE);
 
   useEffect(() => {
     const engine = Matter.Engine.create({ enableSleeping: false });
     engine.gravity.scale = 0;
-    const sword = Matter.Bodies.rectangle(width / 2, height / 2, 42, 42, {
+    const sword = Matter.Bodies.rectangle(width / 2, height / 2, SWORD_SIZE, SWORD_SIZE, {
       label: "sword",
       isStatic: true,
       isSensor: true,
@@ -126,8 +124,8 @@ export function GameScene() {
       lastTouchY.value = swordY.value;
     })
     .onUpdate((event) => {
-      const x = Math.max(HALF_WIDTH, Math.min(width - HALF_WIDTH, event.x));
-      const y = Math.max(HALF_HEIGHT, Math.min(height - HALF_HEIGHT, event.y));
+      const x = Math.max(HALF_SWORD_SIZE, Math.min(width - HALF_SWORD_SIZE, event.x));
+      const y = Math.max(HALF_SWORD_SIZE, Math.min(height - HALF_SWORD_SIZE, event.y));
       direction.value = directionForDelta(
         x - lastTouchX.value,
         y - lastTouchY.value,
@@ -172,8 +170,8 @@ export function GameScene() {
             image={swordImage}
             x={swordImageX}
             y={swordImageY}
-            width={SWORD_WIDTH}
-            height={SWORD_HEIGHT}
+            width={SWORD_SIZE}
+            height={SWORD_SIZE}
             fit="contain"
           />
         </Canvas>
