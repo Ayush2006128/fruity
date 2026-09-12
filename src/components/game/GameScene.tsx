@@ -3,11 +3,12 @@ import type { SwordDirection, TrailPoint } from "@/lib/types";
 import {
   Canvas,
   Group,
-  Image as SkiaImage,
   Path,
   Skia,
+  Image as SkiaImage,
   useImage,
 } from "@shopify/react-native-skia";
+import { useAudioPlayer } from "expo-audio";
 import Matter from "matter-js";
 import { useEffect, useRef } from "react";
 import { Dimensions, StyleSheet } from "react-native";
@@ -26,10 +27,10 @@ const HALF_SWORD_SIZE = SWORD_SIZE / 2;
 const TRAIL_LENGTH = 14;
 
 const swordSprites: Record<SwordDirection, number> = {
-  right: require("../../../assets/sprites/sward-right.png"),
-  "right-down": require("../../../assets/sprites/sward-right-down.png"),
-  left: require("../../../assets/sprites/sward-left.png"),
-  "left-down": require("../../../assets/sprites/sward-left-down.png"),
+  right: require("@/assets/sprites/sward-right.png"),
+  "right-down": require("@/assets/sprites/sward-right-down.png"),
+  left: require("@/assets/sprites/sward-left.png"),
+  "left-down": require("@/assets/sprites/sward-left-down.png"),
 };
 
 function directionForDelta(
@@ -87,6 +88,8 @@ export function GameScene() {
 
   const swordImageX = useDerivedValue(() => swordX.value - HALF_SWORD_SIZE);
   const swordImageY = useDerivedValue(() => swordY.value - HALF_SWORD_SIZE);
+
+  const swordSound = useAudioPlayer(require("@/assets/audio/fx/sword_swoosh.wav"));
 
   useEffect(() => {
     const engine = Matter.Engine.create({ enableSleeping: false });
@@ -148,6 +151,10 @@ export function GameScene() {
         ...point,
         opacity: (index + 1) / points.length,
       }));
+      if (swordSound.playing) {
+        swordSound.seekTo(0);
+      }
+      swordSound.play();
     });
 
   return (
