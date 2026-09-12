@@ -8,7 +8,7 @@ import {
   Image as SkiaImage,
   useImage,
 } from "@shopify/react-native-skia";
-import { useAudioPlayer } from "expo-audio";
+import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import Matter from "matter-js";
 import { useEffect, useRef } from "react";
 import { Dimensions, StyleSheet } from "react-native";
@@ -92,6 +92,13 @@ export function GameScene() {
   const swordSound = useAudioPlayer(require("@/assets/audio/fx/sword_swoosh.wav"));
 
   useEffect(() => {
+    void setAudioModeAsync({
+      playsInSilentMode: true,
+      interruptionMode: "mixWithOthers",
+    });
+  }, []);
+
+  useEffect(() => {
     const engine = Matter.Engine.create({ enableSleeping: false });
     engine.gravity.scale = 0;
     const sword = Matter.Bodies.rectangle(width / 2, height / 2, SWORD_SIZE, SWORD_SIZE, {
@@ -121,6 +128,10 @@ export function GameScene() {
     if (!sword) return;
     Matter.Body.setPosition(sword, { x, y });
     Matter.Body.setVelocity(sword, { x: 0, y: 0 });
+    if (!swordSound.playing) {
+      swordSound.seekTo(0);
+      swordSound.play();
+    }
   };
 
   const panGesture = Gesture.Pan()
@@ -151,10 +162,6 @@ export function GameScene() {
         ...point,
         opacity: (index + 1) / points.length,
       }));
-      if (swordSound.playing) {
-        swordSound.seekTo(0);
-      }
-      swordSound.play();
     });
 
   return (
