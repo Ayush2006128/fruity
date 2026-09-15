@@ -1,4 +1,5 @@
 import { theme } from "@/constants/theme";
+import { useFX, useMusic } from "@/hooks/audio";
 import type { SwordDirection, TrailPoint } from "@/lib/types";
 import {
   Canvas,
@@ -8,7 +9,7 @@ import {
   Image as SkiaImage,
   useImage,
 } from "@shopify/react-native-skia";
-import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
+import { setAudioModeAsync } from "expo-audio";
 import Matter from "matter-js";
 import { useEffect, useRef } from "react";
 import { Dimensions, StyleSheet } from "react-native";
@@ -89,14 +90,36 @@ export function GameScene() {
   const swordImageX = useDerivedValue(() => swordX.value - HALF_SWORD_SIZE);
   const swordImageY = useDerivedValue(() => swordY.value - HALF_SWORD_SIZE);
 
-  const swordSound = useAudioPlayer(require("@/assets/audio/fx/sword_swoosh.wav"));
+  const swordSound = useFX(require("@/assets/audio/fx/sword_swoosh.wav"));
+  const { playlist: musicPlaylist } = useMusic({
+    sources: [
+      require("@/assets/audio/music/bgm1.mp3"),
+      require("@/assets/audio/music/bgm2.mp3"),
+    ],
+  });
 
   useEffect(() => {
-    void setAudioModeAsync({
-      playsInSilentMode: true,
-      interruptionMode: "mixWithOthers",
-    });
-  }, []);
+    let isMounted = true;
+
+    const startMusic = async () => {
+      await setAudioModeAsync({
+        playsInSilentMode: true,
+        shouldPlayInBackground: false,
+        interruptionMode: "mixWithOthers",
+      });
+
+      if (isMounted) {
+        musicPlaylist.play();
+      }
+    };
+
+    void startMusic();
+
+    return () => {
+      isMounted = false;
+      musicPlaylist.pause();
+    };
+  }, [musicPlaylist]);
 
   useEffect(() => {
     const engine = Matter.Engine.create({ enableSleeping: false });
@@ -128,9 +151,8 @@ export function GameScene() {
     if (!sword) return;
     Matter.Body.setPosition(sword, { x, y });
     Matter.Body.setVelocity(sword, { x: 0, y: 0 });
-    if (!swordSound.playing) {
-      swordSound.seekTo(0);
-      swordSound.play();
+    if (!swordSound.player.playing) {
+      void swordSound.play();
     }
   };
 
