@@ -11,14 +11,20 @@ import {
 } from "@shopify/react-native-skia";
 import { setAudioModeAsync } from "expo-audio";
 import Matter from "matter-js";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dimensions, StyleSheet } from "react-native";
 import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
 } from "react-native-gesture-handler";
-import { useDerivedValue, useSharedValue } from "react-native-reanimated";
+import {
+  makeMutable,
+  useDerivedValue,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import type { SharedValue } from "react-native-reanimated";
 import { runOnJS } from "react-native-worklets";
 
 const { width, height } = Dimensions.get("window");
@@ -26,6 +32,22 @@ const SWORD_SCALE = 0.4;
 const SWORD_SIZE = 176 * SWORD_SCALE;
 const HALF_SWORD_SIZE = SWORD_SIZE / 2;
 const TRAIL_LENGTH = 14;
+const FRUIT_SIZE = 88;
+const FRUIT_RADIUS = FRUIT_SIZE / 2;
+const FRUIT_TYPES = [
+  "apple",
+  "peach",
+  "pear",
+  "cherry",
+  "lemon",
+  "mango",
+  "pineapple",
+  "strawberry",
+  "watermelon",
+  "bomb",
+  "life",
+] as const;
+type FruitType = (typeof FRUIT_TYPES)[number];
 
 const swordSprites: Record<SwordDirection, number> = {
   right: require("@/assets/sprites/sward-right.png"),
@@ -33,6 +55,78 @@ const swordSprites: Record<SwordDirection, number> = {
   left: require("@/assets/sprites/sward-left.png"),
   "left-down": require("@/assets/sprites/sward-left-down.png"),
 };
+
+const fruitSprites: Record<FruitType, number> = {
+  apple: require("@/assets/sprites/apple.png"),
+  peach: require("@/assets/sprites/peach.png"),
+  pear: require("@/assets/sprites/pear.png"),
+  cherry: require("@/assets/sprites/cherry.png"),
+  lemon: require("@/assets/sprites/lemon.png"),
+  mango: require("@/assets/sprites/mango.png"),
+  pineapple: require("@/assets/sprites/pineapple.png"),
+  strawberry: require("@/assets/sprites/strawberry.png"),
+  watermelon: require("@/assets/sprites/watermelon.png"),
+  bomb: require("@/assets/sprites/bomb.png"),
+  life: require("@/assets/sprites/life.png"),
+};
+
+type GameFruit = {
+  id: number;
+  type: FruitType;
+  body: Matter.Body;
+  x: SharedValue<number>;
+  y: SharedValue<number>;
+  rotation: SharedValue<number>;
+  sliceProgress: SharedValue<number>;
+  isSliced: boolean;
+};
+
+type FruitSpriteProps = Pick<
+  GameFruit,
+  "type" | "x" | "y" | "rotation" | "sliceProgress"
+> & {
+  isSliced: boolean;
+};
+
+function FruitSprite({
+  type,
+  x,
+  y,
+  rotation,
+  sliceProgress,
+  isSliced,
+}: FruitSpriteProps) {
+  const image = useImage(fruitSprites[type]);
+  const opacity = useDerivedValue(() => 1 - sliceProgress.value);
+  const transform = useDerivedValue(() => {
+    const progress = sliceProgress.value;
+    const scaleX = isSliced ? 1 + progress * 0.35 : 1;
+    return [
+      { translateX: x.value },
+      { translateY: y.value },
+      { rotate: rotation.value },
+      { scaleX },
+      { translateX: -FRUIT_RADIUS },
+      { translateY: -FRUIT_RADIUS },
+    ];
+  });
+
+  return (
+    <Group
+      opacity={opacity}
+      transform={transform}
+    >
+      <SkiaImage
+        image={image}
+        x={0}
+        y={0}
+        width={FRUIT_SIZE}
+        height={FRUIT_SIZE}
+        fit="contain"
+      />
+    </Group>
+  );
+}
 
 function directionForDelta(
   dx: number,
@@ -56,6 +150,8 @@ export function GameScene() {
   const lastTouchX = useSharedValue(width / 2);
   const lastTouchY = useSharedValue(height / 2);
   const swordRef = useRef<Matter.Body | null>(null);
+  const fruitsRef = useRef<GameFruit[]>([]);
+  const [fruits, setFruits] = useState<GameFruit[]>([]);
 
   const rightSword = useImage(swordSprites.right);
   const rightDownSword = useImage(swordSprites["right-down"]);
@@ -91,12 +187,30 @@ export function GameScene() {
   const swordImageY = useDerivedValue(() => swordY.value - HALF_SWORD_SIZE);
 
   const swordSound = useFX(require("@/assets/audio/fx/sword_swoosh.wav"));
+  const fruitCutSound = useFX(require("@/assets/audio/fx/fruit_cut.wav"));
+  const bombExplosionSound = useFX(
+    require("@/assets/audio/fx/bomb_explosion.wav"),
+  );
+  const lifeGainedSound = useFX(require("@/assets/audio/fx/life_gained.wav"));
+  const fruitSoundsRef = useRef({
+    cut: fruitCutSound,
+    bomb: bombExplosionSound,
+    life: lifeGainedSound,
+  });
   const { playlist: musicPlaylist } = useMusic({
     sources: [
       require("@/assets/audio/music/bgm1.mp3"),
       require("@/assets/audio/music/bgm2.mp3"),
     ],
   });
+
+  useEffect(() => {
+    fruitSoundsRef.current = {
+      cut: fruitCutSound,
+      bomb: bombExplosionSound,
+      life: lifeGainedSound,
+    };
+  }, [bombExplosionSound, fruitCutSound, lifeGainedSound]);
 
   useEffect(() => {
     let isMounted = true;
@@ -117,13 +231,13 @@ export function GameScene() {
 
     return () => {
       isMounted = false;
-      musicPlaylist.pause();
     };
   }, [musicPlaylist]);
 
   useEffect(() => {
     const engine = Matter.Engine.create({ enableSleeping: false });
-    engine.gravity.scale = 0;
+    engine.gravity.y = 1;
+    engine.gravity.scale = 0.006;
     const sword = Matter.Bodies.rectangle(width / 2, height / 2, SWORD_SIZE, SWORD_SIZE, {
       label: "sword",
       isStatic: true,
@@ -138,7 +252,116 @@ export function GameScene() {
     const leftWall = Matter.Bodies.rectangle(-width * 0.05, height / 2, 10, height, { isStatic: true });
     Matter.World.add(engine.world, [sword, rightWall, leftWall]);
 
+    let nextFruitId = 0;
+    let lastFrameTime = performance.now();
+    let spawnTimer = 0;
+    const removalTimers = new Set<ReturnType<typeof setTimeout>>();
+
+    const removeFruit = (fruit: GameFruit) => {
+      Matter.World.remove(engine.world, fruit.body);
+      fruitsRef.current = fruitsRef.current.filter(
+        (currentFruit) => currentFruit.id !== fruit.id,
+      );
+      setFruits(fruitsRef.current);
+    };
+
+    const sliceFruit = (body: Matter.Body) => {
+      const fruit = fruitsRef.current.find(
+        (currentFruit) => currentFruit.body.id === body.id,
+      );
+      if (!fruit || fruit.isSliced) return;
+
+      fruit.isSliced = true;
+      Matter.World.remove(engine.world, fruit.body);
+      fruit.sliceProgress.value = withTiming(1, { duration: 320 });
+
+      if (fruit.type === "bomb") {
+        void fruitSoundsRef.current.bomb.play();
+      } else if (fruit.type === "life") {
+        void fruitSoundsRef.current.life.play();
+      } else {
+        void fruitSoundsRef.current.cut.play();
+      }
+
+      const removalTimer = setTimeout(() => {
+        removalTimers.delete(removalTimer);
+        removeFruit(fruit);
+      }, 340);
+      removalTimers.add(removalTimer);
+    };
+
+    Matter.Events.on(engine, "collisionStart", (event) => {
+      for (const pair of event.pairs) {
+        if (pair.bodyA.label === "sword") {
+          sliceFruit(pair.bodyB);
+        } else if (pair.bodyB.label === "sword") {
+          sliceFruit(pair.bodyA);
+        }
+      }
+    });
+
+    const spawnFruit = () => {
+      const type =
+        FRUIT_TYPES[Math.floor(Math.random() * FRUIT_TYPES.length)];
+      const x = FRUIT_RADIUS + Math.random() * (width - FRUIT_SIZE);
+      const body = Matter.Bodies.circle(x, -FRUIT_RADIUS, FRUIT_RADIUS, {
+        label: type,
+        friction: 0,
+        frictionAir: 0.001,
+        restitution: 0.3,
+      });
+      Matter.Body.setVelocity(body, {
+        x: (Math.random() - 0.5) * 0.8,
+        y: 0.25 + Math.random() * 0.5,
+      });
+      Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.04);
+
+      const fruit: GameFruit = {
+        id: nextFruitId++,
+        type,
+        body,
+        x: makeMutable(x),
+        y: makeMutable(-FRUIT_RADIUS),
+        rotation: makeMutable(0),
+        sliceProgress: makeMutable(0),
+        isSliced: false,
+      };
+      fruitsRef.current = [...fruitsRef.current, fruit];
+      setFruits(fruitsRef.current);
+      Matter.World.add(engine.world, body);
+    };
+
+    let animationFrame = 0;
+    const update = (timestamp: number) => {
+      const delta = Math.min(timestamp - lastFrameTime, 34);
+      lastFrameTime = timestamp;
+      spawnTimer += delta;
+      if (spawnTimer >= 850) {
+        spawnTimer = 0;
+        spawnFruit();
+      }
+
+      Matter.Engine.update(engine, delta);
+      for (const fruit of fruitsRef.current) {
+        if (!fruit.isSliced) {
+          fruit.x.value = fruit.body.position.x;
+          fruit.y.value = fruit.body.position.y;
+          fruit.rotation.value = fruit.body.angle;
+          if (fruit.body.position.y > height + FRUIT_SIZE) {
+            removeFruit(fruit);
+          }
+        }
+      }
+      animationFrame = requestAnimationFrame(update);
+    };
+    animationFrame = requestAnimationFrame(update);
+
     return () => {
+      cancelAnimationFrame(animationFrame);
+      for (const timer of removalTimers) clearTimeout(timer);
+      Matter.Events.off(engine, "collisionStart");
+      fruitsRef.current = [];
+      setFruits([]);
       Matter.World.remove(engine.world, [sword, rightWall, leftWall]);
       Matter.World.clear(engine.world, false);
       Matter.Engine.clear(engine);
@@ -190,6 +413,17 @@ export function GameScene() {
     <GestureHandlerRootView style={styles.container}>
       <GestureDetector gesture={panGesture}>
         <Canvas style={styles.canvas}>
+          {fruits.map((fruit) => (
+            <FruitSprite
+              key={fruit.id}
+              type={fruit.type}
+              x={fruit.x}
+              y={fruit.y}
+              rotation={fruit.rotation}
+              sliceProgress={fruit.sliceProgress}
+              isSliced={fruit.isSliced}
+            />
+          ))}
           <Group opacity={0.2}>
             <Path
               path={trailPath}

@@ -32,13 +32,13 @@ export function useFX(source: AudioSource): FXAudio {
     });
 
     const play = async () => {
-        await player.seekTo(0);
+        player.seekTo(0);
         player.play();
     };
 
     const stop = async () => {
         player.pause();
-        await player.seekTo(0);
+        player.seekTo(0);
     };
 
     return {
