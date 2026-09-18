@@ -7,6 +7,8 @@ import {
   Path,
   Skia,
   Image as SkiaImage,
+  Text as SkiaText,
+  useFont,
   useImage,
 } from "@shopify/react-native-skia";
 import { setAudioModeAsync } from "expo-audio";
@@ -152,6 +154,12 @@ export function GameScene() {
   const swordRef = useRef<Matter.Body | null>(null);
   const fruitsRef = useRef<GameFruit[]>([]);
   const [fruits, setFruits] = useState<GameFruit[]>([]);
+  const [score, setScore] = useState(0);
+  const scoreFont = useFont(
+    require("@/assets/fonts/CarterOne-Regular.ttf"),
+    32,
+  );
+  const scoreText = `SCORE: ${score}`;
 
   const rightSword = useImage(swordSprites.right);
   const rightDownSword = useImage(swordSprites["right-down"]);
@@ -281,6 +289,7 @@ export function GameScene() {
         void fruitSoundsRef.current.life.play();
       } else {
         void fruitSoundsRef.current.cut.play();
+        setScore((prev) => prev + 1);
       }
 
       const removalTimer = setTimeout(() => {
@@ -446,6 +455,15 @@ export function GameScene() {
             height={SWORD_SIZE}
             fit="contain"
           />
+          {scoreFont && (
+            <SkiaText
+              x={20}
+              y={52}
+              text={scoreText}
+              font={scoreFont}
+              color={theme.colors.text}
+            />
+          )}
         </Canvas>
       </GestureDetector>
     </GestureHandlerRootView>
