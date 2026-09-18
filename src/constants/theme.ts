@@ -13,6 +13,11 @@ const theme = {
         warning: "#faad14",
         success: "#52c41a",
     },
+
+    fonts: {
+        heading: "CarterOne-Regular",
+        body: "LuckiestGuy-Regular"
+    }
 };
 
 export { theme };
