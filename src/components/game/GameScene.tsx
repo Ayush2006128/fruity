@@ -13,7 +13,7 @@ import {
 } from "@shopify/react-native-skia";
 import { setAudioModeAsync } from "expo-audio";
 import Matter from "matter-js";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Dimensions, StyleSheet } from "react-native";
 import {
   Gesture,
@@ -36,6 +36,7 @@ const HALF_SWORD_SIZE = SWORD_SIZE / 2;
 const TRAIL_LENGTH = 14;
 const FRUIT_SIZE = 88;
 const FRUIT_RADIUS = FRUIT_SIZE / 2;
+const ZERO_VELOCITY = { x: 0, y: 0 };
 const FRUIT_TYPES = [
   "apple",
   "peach",
@@ -85,20 +86,20 @@ type GameFruit = {
 
 type FruitSpriteProps = Pick<
   GameFruit,
-  "type" | "x" | "y" | "rotation" | "sliceProgress"
+  "x" | "y" | "rotation" | "sliceProgress"
 > & {
   isSliced: boolean;
+  image: ReturnType<typeof useImage>;
 };
 
-function FruitSprite({
-  type,
+const FruitSprite = memo(function FruitSprite({
   x,
   y,
   rotation,
   sliceProgress,
   isSliced,
+  image,
 }: FruitSpriteProps) {
-  const image = useImage(fruitSprites[type]);
   const opacity = useDerivedValue(() => 1 - sliceProgress.value);
   const transform = useDerivedValue(() => {
     const progress = sliceProgress.value;
@@ -128,7 +129,7 @@ function FruitSprite({
       />
     </Group>
   );
-}
+});
 
 function directionForDelta(
   dx: number,
@@ -166,6 +167,21 @@ export function GameScene() {
   const leftSword = useImage(swordSprites.left);
   const leftDownSword = useImage(swordSprites["left-down"]);
 
+  // Preload all fruit images once at the parent level
+  const fruitImages = {
+    apple: useImage(fruitSprites.apple),
+    peach: useImage(fruitSprites.peach),
+    pear: useImage(fruitSprites.pear),
+    cherry: useImage(fruitSprites.cherry),
+    lemon: useImage(fruitSprites.lemon),
+    mango: useImage(fruitSprites.mango),
+    pineapple: useImage(fruitSprites.pineapple),
+    strawberry: useImage(fruitSprites.strawberry),
+    watermelon: useImage(fruitSprites.watermelon),
+    bomb: useImage(fruitSprites.bomb),
+    life: useImage(fruitSprites.life),
+  };
+
   const trailPath = useDerivedValue(() => {
     const pathBuilder = Skia.PathBuilder.Make();
     const points = trail.value;
@@ -195,7 +211,7 @@ export function GameScene() {
   const swordImageY = useDerivedValue(() => swordY.value - HALF_SWORD_SIZE);
 
   const swordSound = useFX(require("@/assets/audio/fx/sword_swoosh.wav"));
-  const fruitCutSound = useFX(require("@/assets/audio/fx/fruit_cut.wav"));
+  const fruitCutSound = useFX(require("@/assets/audio/fx/fruit_cut.wav"), 3);
   const bombExplosionSound = useFX(
     require("@/assets/audio/fx/bomb_explosion.wav"),
   );
@@ -211,14 +227,6 @@ export function GameScene() {
       require("@/assets/audio/music/bgm2.mp3"),
     ],
   });
-
-  useEffect(() => {
-    fruitSoundsRef.current = {
-      cut: fruitCutSound,
-      bomb: bombExplosionSound,
-      life: lifeGainedSound,
-    };
-  }, [bombExplosionSound, fruitCutSound, lifeGainedSound]);
 
   useEffect(() => {
     let isMounted = true;
@@ -263,6 +271,7 @@ export function GameScene() {
     let nextFruitId = 0;
     let lastFrameTime = performance.now();
     let spawnTimer = 0;
+    let fruitsNeedSync = false;
     const removalTimers = new Set<ReturnType<typeof setTimeout>>();
 
     const removeFruit = (fruit: GameFruit) => {
@@ -270,7 +279,7 @@ export function GameScene() {
       fruitsRef.current = fruitsRef.current.filter(
         (currentFruit) => currentFruit.id !== fruit.id,
       );
-      setFruits(fruitsRef.current);
+      fruitsNeedSync = true;
     };
 
     const sliceFruit = (body: Matter.Body) => {
@@ -336,7 +345,7 @@ export function GameScene() {
         isSliced: false,
       };
       fruitsRef.current = [...fruitsRef.current, fruit];
-      setFruits(fruitsRef.current);
+      fruitsNeedSync = true;
       Matter.World.add(engine.world, body);
     };
 
@@ -361,6 +370,11 @@ export function GameScene() {
           }
         }
       }
+      // Batch React state update: at most one render per frame
+      if (fruitsNeedSync) {
+        fruitsNeedSync = false;
+        setFruits([...fruitsRef.current]);
+      }
       animationFrame = requestAnimationFrame(update);
     };
     animationFrame = requestAnimationFrame(update);
@@ -378,14 +392,20 @@ export function GameScene() {
     };
   }, []);
 
-  const moveSwordBody = (x: number, y: number) => {
+  const moveSwordBodyRef = useRef((x: number, y: number) => {});
+  moveSwordBodyRef.current = (x: number, y: number) => {
     const sword = swordRef.current;
     if (!sword) return;
     Matter.Body.setPosition(sword, { x, y });
-    Matter.Body.setVelocity(sword, { x: 0, y: 0 });
+    Matter.Body.setVelocity(sword, ZERO_VELOCITY);
     if (!swordSound.player.playing) {
-      void swordSound.play();
+      swordSound.player.seekTo(0);
+      swordSound.player.play();
     }
+  };
+
+  const moveSwordBody = (x: number, y: number) => {
+    moveSwordBodyRef.current(x, y);
   };
 
   const panGesture = Gesture.Pan()
@@ -425,7 +445,7 @@ export function GameScene() {
           {fruits.map((fruit) => (
             <FruitSprite
               key={fruit.id}
-              type={fruit.type}
+              image={fruitImages[fruit.type]}
               x={fruit.x}
               y={fruit.y}
               rotation={fruit.rotation}
