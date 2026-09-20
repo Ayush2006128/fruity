@@ -351,7 +351,7 @@ export function GameScene() {
 
     let animationFrame = 0;
     const update = (timestamp: number) => {
-      const delta = Math.min(timestamp - lastFrameTime, 34);
+      const delta = Math.min(timestamp - lastFrameTime, 16.667);
       lastFrameTime = timestamp;
       spawnTimer += delta;
       if (spawnTimer >= 850) {
