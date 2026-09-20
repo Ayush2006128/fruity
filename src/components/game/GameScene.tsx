@@ -245,7 +245,7 @@ export function GameScene() {
   useEffect(() => {
     const engine = Matter.Engine.create({ enableSleeping: false });
     engine.gravity.y = 1;
-    engine.gravity.scale = 0.006;
+    engine.gravity.scale = 0.002;
     const sword = Matter.Bodies.rectangle(width / 2, height / 2, SWORD_SIZE, SWORD_SIZE, {
       label: "sword",
       isStatic: true,
@@ -316,12 +316,12 @@ export function GameScene() {
       const body = Matter.Bodies.circle(x, -FRUIT_RADIUS, FRUIT_RADIUS, {
         label: type,
         friction: 0,
-        frictionAir: 0.001,
+        frictionAir: 0.03,
         restitution: 0.3,
       });
       Matter.Body.setVelocity(body, {
         x: (Math.random() - 0.5) * 0.8,
-        y: 0.25 + Math.random() * 0.5,
+        y: 0,
       });
       Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * 0.04);
 
