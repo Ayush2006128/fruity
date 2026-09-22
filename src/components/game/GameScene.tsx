@@ -220,13 +220,9 @@ export function GameScene({ onGameOver }: GameSceneProps) {
 
   const swordSound = useFX(require("@/assets/audio/fx/sword_swoosh.wav"));
   const fruitCutSound = useFX(require("@/assets/audio/fx/fruit_cut.wav"), 3);
-  const bombExplosionSound = useFX(
-    require("@/assets/audio/fx/bomb_explosion.wav"),
-  );
   const lifeGainedSound = useFX(require("@/assets/audio/fx/life_gained.wav"));
   const fruitSoundsRef = useRef({
     cut: fruitCutSound,
-    bomb: bombExplosionSound,
     life: lifeGainedSound,
   });
   const { playlist: musicPlaylist } = useMusic({
@@ -302,7 +298,6 @@ export function GameScene({ onGameOver }: GameSceneProps) {
 
       if (fruit.type === "bomb") {
         gameOverRef.current = true;
-        void fruitSoundsRef.current.bomb.play();
         onGameOverRef.current(scoreRef.current);
       } else if (fruit.type === "life") {
         void fruitSoundsRef.current.life.play();

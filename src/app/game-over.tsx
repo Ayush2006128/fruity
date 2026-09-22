@@ -1,11 +1,21 @@
 import { theme } from "@/constants/theme";
 import { Button } from "@/components/ui/Button";
+import { useFX } from "@/hooks/audio";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 export default function GameOverScreen() {
   const router = useRouter();
   const { score } = useLocalSearchParams<{ score: string }>();
+  const gameOverSound = useFX(require("@/assets/audio/fx/game_over.wav"));
+
+  useEffect(() => {
+    void gameOverSound.play();
+    return () => {
+      void gameOverSound.stop();
+    };
+  }, [gameOverSound]);
 
   return (
     <View style={styles.container}>

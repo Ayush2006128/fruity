@@ -1,15 +1,22 @@
 import { theme } from "@/constants/theme";
 import { Button } from "@/components/ui/Button";
+import { useFX } from "@/hooks/audio";
 import { useRouter } from "expo-router";
 import { View, Text, StyleSheet } from "react-native";
 
 export default function StartScreen() {
   const router = useRouter();
+  const gameStartSound = useFX(require("@/assets/audio/fx/game_start.wav"));
+
+  const handleStart = async () => {
+    await gameStartSound.play();
+    router.replace("/playing");
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Welcome!</Text>
-      <Button onPress={() => router.replace("/playing")} color={theme.colors.primary}>
+      <Button onPress={handleStart} color={theme.colors.primary}>
         <Text style={styles.buttonText}>Start</Text>
       </Button>
     </View>
