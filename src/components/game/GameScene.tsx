@@ -145,7 +145,11 @@ function directionForDelta(
     : side;
 }
 
-export function GameScene() {
+type GameSceneProps = {
+  onGameOver: (score: number) => void;
+};
+
+export function GameScene({ onGameOver }: GameSceneProps) {
   const swordX = useSharedValue(width / 2);
   const swordY = useSharedValue(height / 2);
   const direction = useSharedValue<SwordDirection>("right");
@@ -156,6 +160,10 @@ export function GameScene() {
   const fruitsRef = useRef<GameFruit[]>([]);
   const [fruits, setFruits] = useState<GameFruit[]>([]);
   const [score, setScore] = useState(0);
+  const scoreRef = useRef(0);
+  const onGameOverRef = useRef(onGameOver);
+  onGameOverRef.current = onGameOver;
+  const gameOverRef = useRef(false);
   const scoreFont = useFont(
     require("@/assets/fonts/CarterOne-Regular.ttf"),
     32,
@@ -286,19 +294,25 @@ export function GameScene() {
       const fruit = fruitsRef.current.find(
         (currentFruit) => currentFruit.body.id === body.id,
       );
-      if (!fruit || fruit.isSliced) return;
+      if (!fruit || fruit.isSliced || gameOverRef.current) return;
 
       fruit.isSliced = true;
       Matter.World.remove(engine.world, fruit.body);
       fruit.sliceProgress.value = withTiming(1, { duration: 320 });
 
       if (fruit.type === "bomb") {
+        gameOverRef.current = true;
         void fruitSoundsRef.current.bomb.play();
+        onGameOverRef.current(scoreRef.current);
       } else if (fruit.type === "life") {
         void fruitSoundsRef.current.life.play();
       } else {
         void fruitSoundsRef.current.cut.play();
-        setScore((prev) => prev + 1);
+        setScore((prev) => {
+          const next = prev + 1;
+          scoreRef.current = next;
+          return next;
+        });
       }
 
       const removalTimer = setTimeout(() => {
@@ -351,6 +365,8 @@ export function GameScene() {
 
     let animationFrame = 0;
     const update = (timestamp: number) => {
+      if (gameOverRef.current) return;
+
       const delta = Math.min(timestamp - lastFrameTime, 16.667);
       lastFrameTime = timestamp;
       spawnTimer += delta;
