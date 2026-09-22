@@ -1,5 +1,5 @@
 import { theme } from "@/constants/theme";
-import { useFX, useMusic } from "@/hooks/audio";
+import { useFX } from "@/hooks/audio";
 import type { SwordDirection, TrailPoint } from "@/lib/types";
 import {
   Canvas,
@@ -11,7 +11,6 @@ import {
   useFont,
   useImage,
 } from "@shopify/react-native-skia";
-import { setAudioModeAsync } from "expo-audio";
 import Matter from "matter-js";
 import { memo, useEffect, useRef, useState } from "react";
 import { Dimensions, StyleSheet } from "react-native";
@@ -220,39 +219,16 @@ export function GameScene({ onGameOver }: GameSceneProps) {
 
   const swordSound = useFX(require("@/assets/audio/fx/sword_swoosh.wav"));
   const fruitCutSound = useFX(require("@/assets/audio/fx/fruit_cut.wav"), 3);
+  const bombExplosionSound = useFX(
+    require("@/assets/audio/fx/bomb_explosion.wav"),
+  );
   const lifeGainedSound = useFX(require("@/assets/audio/fx/life_gained.wav"));
   const fruitSoundsRef = useRef({
     cut: fruitCutSound,
+    bomb: bombExplosionSound,
     life: lifeGainedSound,
   });
-  const { playlist: musicPlaylist } = useMusic({
-    sources: [
-      require("@/assets/audio/music/bgm1.mp3"),
-      require("@/assets/audio/music/bgm2.mp3"),
-    ],
-  });
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const startMusic = async () => {
-      await setAudioModeAsync({
-        playsInSilentMode: true,
-        shouldPlayInBackground: false,
-        interruptionMode: "mixWithOthers",
-      });
-
-      if (isMounted) {
-        musicPlaylist.play();
-      }
-    };
-
-    void startMusic();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [musicPlaylist]);
 
   useEffect(() => {
     const engine = Matter.Engine.create({ enableSleeping: false });
@@ -298,6 +274,7 @@ export function GameScene({ onGameOver }: GameSceneProps) {
 
       if (fruit.type === "bomb") {
         gameOverRef.current = true;
+        void fruitSoundsRef.current.bomb.play();
         onGameOverRef.current(scoreRef.current);
       } else if (fruit.type === "life") {
         void fruitSoundsRef.current.life.play();
