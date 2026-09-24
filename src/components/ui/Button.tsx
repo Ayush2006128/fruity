@@ -1,13 +1,32 @@
 import { theme } from "@/constants/theme";
 import { useFX } from "@/hooks/audio";
+import { useEffect, useRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 export function Button({ children, onPress, color }: { children: React.ReactNode; onPress: () => void; color: string }) {
   const woodClick = useFX(require("@/assets/audio/fx/wood_click.wav"));
+  const isPressingRef = useRef(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handlePress = () => {
+    if (isPressingRef.current) return;
+    isPressingRef.current = true;
     void woodClick.play();
-    onPress();
+    timeoutRef.current = setTimeout(() => {
+      try {
+        onPress();
+      } finally {
+        isPressingRef.current = false;
+      }
+    }, 180);
   };
 
   return (

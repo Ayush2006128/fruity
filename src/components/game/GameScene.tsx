@@ -275,7 +275,11 @@ export function GameScene({ onGameOver }: GameSceneProps) {
       if (fruit.type === "bomb") {
         gameOverRef.current = true;
         void fruitSoundsRef.current.bomb.play();
-        onGameOverRef.current(scoreRef.current);
+        const gameOverTimer = setTimeout(() => {
+          removalTimers.delete(gameOverTimer);
+          onGameOverRef.current(scoreRef.current);
+        }, 300);
+        removalTimers.add(gameOverTimer);
       } else if (fruit.type === "life") {
         void fruitSoundsRef.current.life.play();
       } else {
@@ -386,9 +390,8 @@ export function GameScene({ onGameOver }: GameSceneProps) {
     if (!sword) return;
     Matter.Body.setPosition(sword, { x, y });
     Matter.Body.setVelocity(sword, ZERO_VELOCITY);
-    if (!swordSound.player.playing) {
-      swordSound.player.seekTo(0);
-      swordSound.player.play();
+    if (!swordSound.isPlaying()) {
+      void swordSound.play();
     }
   };
 
