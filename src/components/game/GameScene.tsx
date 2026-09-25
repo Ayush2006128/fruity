@@ -506,11 +506,11 @@ export function GameScene({ onGameOver }: GameSceneProps) {
           {[...Array(3)].map((_, i) => (
             <Circle
               key={`life-${i}`}
-              cx={width - 40 - (2 - i) * 30}
-              cy={40}
+              cx={30 + i * 30}
+              cy={76}
               r={10}
               color={theme.colors.text}
-              style={i < lives ? "fill" : "stroke"}
+              style={i >= 3 - lives ? "fill" : "stroke"}
               strokeWidth={2}
             />
           ))}
