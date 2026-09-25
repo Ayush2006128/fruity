@@ -1,6 +1,7 @@
 import { useMusic } from "@/hooks/audio";
 import { setAudioModeAsync } from "expo-audio";
 import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
 export default function RootLayout() {
@@ -33,5 +34,9 @@ export default function RootLayout() {
     };
   }, [musicPlaylist]);
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false }} >
+      <StatusBar style="dark" />
+    </Stack>
+  );
 }
