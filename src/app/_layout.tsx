@@ -35,8 +35,10 @@ export default function RootLayout() {
   }, [musicPlaylist]);
 
   return (
+    <>
     <Stack screenOptions={{ headerShown: false }} >
-      <StatusBar style="dark" />
     </Stack>
+    <StatusBar style="dark" />
+    </>
   );
 }
