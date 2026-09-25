@@ -10,6 +10,7 @@ import {
   Text as SkiaText,
   useFont,
   useImage,
+  Circle,
 } from "@shopify/react-native-skia";
 import Matter from "matter-js";
 import { memo, useEffect, useRef, useState } from "react";
@@ -159,7 +160,9 @@ export function GameScene({ onGameOver }: GameSceneProps) {
   const fruitsRef = useRef<GameFruit[]>([]);
   const [fruits, setFruits] = useState<GameFruit[]>([]);
   const [score, setScore] = useState(0);
+  const [lives, setLives] = useState(3);
   const scoreRef = useRef(0);
+  const livesRef = useRef(3);
   const onGameOverRef = useRef(onGameOver);
   onGameOverRef.current = onGameOver;
   const gameOverRef = useRef(false);
@@ -260,6 +263,20 @@ export function GameScene({ onGameOver }: GameSceneProps) {
         (currentFruit) => currentFruit.id !== fruit.id,
       );
       fruitsNeedSync = true;
+
+      if (!fruit.isSliced && fruit.type !== "bomb" && fruit.type !== "life") {
+        const nextLives = livesRef.current - 1;
+        livesRef.current = nextLives;
+        setLives(nextLives);
+        if (nextLives <= 0 && !gameOverRef.current) {
+          gameOverRef.current = true;
+          const gameOverTimer = setTimeout(() => {
+            removalTimers.delete(gameOverTimer);
+            onGameOverRef.current(scoreRef.current);
+          }, 300);
+          removalTimers.add(gameOverTimer);
+        }
+      }
     };
 
     const sliceFruit = (body: Matter.Body) => {
@@ -282,6 +299,11 @@ export function GameScene({ onGameOver }: GameSceneProps) {
         removalTimers.add(gameOverTimer);
       } else if (fruit.type === "life") {
         void fruitSoundsRef.current.life.play();
+        if (livesRef.current < 3) {
+          const nextLives = livesRef.current + 1;
+          livesRef.current = nextLives;
+          setLives(nextLives);
+        }
       } else {
         void fruitSoundsRef.current.cut.play();
         setScore((prev) => {
@@ -309,8 +331,14 @@ export function GameScene({ onGameOver }: GameSceneProps) {
     });
 
     const spawnFruit = () => {
+      const availableTypes = FRUIT_TYPES.filter((type) => {
+        if (type === "life") {
+          return livesRef.current < 3;
+        }
+        return true;
+      });
       const type =
-        FRUIT_TYPES[Math.floor(Math.random() * FRUIT_TYPES.length)];
+        availableTypes[Math.floor(Math.random() * availableTypes.length)];
       const x = FRUIT_RADIUS + Math.random() * (width - FRUIT_SIZE);
       const body = Matter.Bodies.circle(x, -FRUIT_RADIUS, FRUIT_RADIUS, {
         label: type,
@@ -475,6 +503,17 @@ export function GameScene({ onGameOver }: GameSceneProps) {
               color={theme.colors.text}
             />
           )}
+          {[...Array(3)].map((_, i) => (
+            <Circle
+              key={`life-${i}`}
+              cx={width - 40 - (2 - i) * 30}
+              cy={40}
+              r={10}
+              color={theme.colors.text}
+              style={i < lives ? "fill" : "stroke"}
+              strokeWidth={2}
+            />
+          ))}
         </Canvas>
       </GestureDetector>
     </GestureHandlerRootView>
