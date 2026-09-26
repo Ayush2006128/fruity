@@ -2,6 +2,7 @@ import { theme } from "@/constants/theme";
 import { Button } from "@/components/ui/Button";
 import { useFX } from "@/hooks/audio";
 import { useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import { View, Text, StyleSheet } from "react-native";
 
 export default function StartScreen() {
@@ -17,7 +18,7 @@ export default function StartScreen() {
     <View style={styles.container}>
       <Text style={styles.heading}>Welcome!</Text>
       <Button onPress={handleStart} color={theme.colors.primary}>
-        <Text style={styles.buttonText}>Start</Text>
+        <SymbolView name={{ ios: "play", android: "play_arrow", web: "play_arrow" }} style={styles.buttonIcon} />
       </Button>
     </View>
   );
@@ -37,9 +38,9 @@ const styles = StyleSheet.create({
     margin: 4,
     padding: 4,
   },
-  buttonText: {
-    fontSize: 19,
+  buttonIcon: {
+    width: 19,
+    height: 19,
     color: theme.colors.textSecondary,
-    fontFamily: theme.fonts.body,
   },
 });

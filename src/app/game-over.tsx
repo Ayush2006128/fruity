@@ -2,6 +2,7 @@ import { theme } from "@/constants/theme";
 import { Button } from "@/components/ui/Button";
 import { useFX } from "@/hooks/audio";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols"
 import { useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 
@@ -23,10 +24,10 @@ export default function GameOverScreen() {
       <Text style={styles.score}>Score: {score ?? 0}</Text>
       <View style={styles.buttons}>
         <Button onPress={() => router.replace("/playing")} color={theme.colors.primary}>
-          <Text style={styles.buttonText}>Replay</Text>
+          <SymbolView name={{ ios: "forward", android: "forward_media", web: "forward_media" }} style={styles.buttonIcon} />
         </Button>
         <Button onPress={() => router.replace("/")} color={theme.colors.secondary}>
-          <Text style={styles.buttonText}>Home</Text>
+          <SymbolView name={{ ios: "house", android: "home", web: "home" }} style={styles.buttonIcon} />
         </Button>
       </View>
     </View>
@@ -57,9 +58,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 16,
   },
-  buttonText: {
-    fontSize: 19,
+  buttonIcon: {
+    width: 19,
+    height: 19,
     color: theme.colors.textSecondary,
-    fontFamily: theme.fonts.body,
   },
 });
