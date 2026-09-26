@@ -24,10 +24,10 @@ export default function GameOverScreen() {
       <Text style={styles.score}>Score: {score ?? 0}</Text>
       <View style={styles.buttons}>
         <Button onPress={() => router.replace("/playing")} color={theme.colors.primary}>
-          <SymbolView name={{ ios: "forward", android: "forward_media", web: "forward_media" }} style={styles.buttonIcon} />
+          <SymbolView name={{ ios: "forward", android: "forward_media", web: "forward_media" }} size={19} tintColor={theme.colors.textSecondary} />
         </Button>
         <Button onPress={() => router.replace("/")} color={theme.colors.secondary}>
-          <SymbolView name={{ ios: "house", android: "home", web: "home" }} style={styles.buttonIcon} />
+          <SymbolView name={{ ios: "house", android: "home", web: "home" }} size={19} tintColor={theme.colors.textSecondary} />
         </Button>
       </View>
     </View>
@@ -57,10 +57,5 @@ const styles = StyleSheet.create({
   buttons: {
     flexDirection: "row",
     gap: 16,
-  },
-  buttonIcon: {
-    width: 19,
-    height: 19,
-    color: theme.colors.textSecondary,
   },
 });

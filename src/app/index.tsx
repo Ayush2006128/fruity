@@ -18,7 +18,7 @@ export default function StartScreen() {
     <View style={styles.container}>
       <Text style={styles.heading}>Welcome!</Text>
       <Button onPress={handleStart} color={theme.colors.primary}>
-        <SymbolView name={{ ios: "play", android: "play_arrow", web: "play_arrow" }} style={styles.buttonIcon} />
+        <SymbolView name={{ ios: "play", android: "play_arrow", web: "play_arrow" }} size={19} tintColor={theme.colors.textSecondary} />
       </Button>
     </View>
   );
@@ -37,10 +37,5 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.heading,
     margin: 4,
     padding: 4,
-  },
-  buttonIcon: {
-    width: 19,
-    height: 19,
-    color: theme.colors.textSecondary,
   },
 });
