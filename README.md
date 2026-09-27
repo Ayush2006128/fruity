@@ -2,7 +2,7 @@
 
 Welcome to **Fruity** — a fun, colorful, and engaging game built with Expo!
 
-![Screenshot Banner](docs/screenshot.png)
+![Screenshot Banner](docs/banner.png)
 
 ## Features
 
