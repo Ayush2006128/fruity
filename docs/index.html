@@ -21,8 +21,33 @@
         <h2>Welcome to Fruity!</h2>
         <p>A fun, colorful, and engaging game where fruit meets fun. Match, tap, and enjoy a vibrant world of fruity goodness.</p>
         
-        <div class="screenshot-placeholder">
-            Screenshot Placeholder
+        <div class="carousel-container">
+            <input type="radio" name="carousel" id="slide1" checked>
+            <input type="radio" name="carousel" id="slide2">
+            <input type="radio" name="carousel" id="slide3">
+
+            <div class="carousel-slides">
+                <div class="carousel-slide"><img src="screenshot1.jpg" alt="Screenshot 1"></div>
+                <div class="carousel-slide"><img src="screenshot2.jpg" alt="Screenshot 2"></div>
+                <div class="carousel-slide"><img src="screenshot3.jpg" alt="Screenshot 3"></div>
+            </div>
+
+            <div class="carousel-controls">
+                <label for="slide3" class="prev slide1-control">❮</label>
+                <label for="slide2" class="next slide1-control">❯</label>
+
+                <label for="slide1" class="prev slide2-control">❮</label>
+                <label for="slide3" class="next slide2-control">❯</label>
+
+                <label for="slide2" class="prev slide3-control">❮</label>
+                <label for="slide1" class="next slide3-control">❯</label>
+            </div>
+
+            <div class="carousel-nav">
+                <label for="slide1"></label>
+                <label for="slide2"></label>
+                <label for="slide3"></label>
+            </div>
         </div>
 
         <h3>Why Play Fruity?</h3>

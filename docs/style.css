@@ -77,21 +77,93 @@ nav a:hover {
   box-shadow: 0 0 0 var(--border);
 }
 
-.screenshot-placeholder {
+.carousel-container {
+  position: relative;
   width: 100%;
   max-width: 300px;
   height: 600px;
-  background-color: var(--secondary);
-  border: 4px dashed var(--border);
-  border-radius: 20px;
   margin: 2rem auto;
+  border: 4px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  background-color: var(--secondary);
+}
+
+.carousel-slides {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Carter One', cursive;
-  color: #fff;
-  font-size: 1.5rem;
-  text-shadow: 1px 1px 0 var(--border);
+  width: 300%;
+  height: 100%;
+  transition: transform 0.5s ease-in-out;
+}
+
+.carousel-slide {
+  width: 33.3333%;
+  height: 100%;
+}
+
+.carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+input[name="carousel"] {
+  display: none;
+}
+
+#slide1:checked ~ .carousel-slides { transform: translateX(0%); }
+#slide2:checked ~ .carousel-slides { transform: translateX(-33.3333%); }
+#slide3:checked ~ .carousel-slides { transform: translateX(-66.6666%); }
+
+.carousel-nav {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.carousel-nav label {
+  width: 16px;
+  height: 16px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--border);
+  transition: background-color 0.3s;
+}
+
+#slide1:checked ~ .carousel-nav label[for="slide1"],
+#slide2:checked ~ .carousel-nav label[for="slide2"],
+#slide3:checked ~ .carousel-nav label[for="slide3"] {
+  background-color: var(--primary);
+}
+
+.carousel-controls label {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--text);
+  font-size: 1.2rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--border);
+  user-select: none;
+  z-index: 10;
+}
+
+.carousel-controls .prev { left: 10px; }
+.carousel-controls .next { right: 10px; }
+
+#slide1:checked ~ .carousel-controls .slide1-control,
+#slide2:checked ~ .carousel-controls .slide2-control,
+#slide3:checked ~ .carousel-controls .slide3-control {
+  display: block;
 }
 
 .content {
