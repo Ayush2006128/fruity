@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Downloads - Fruity</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
     <link rel="icon" href="favicon.png" type="image/png">
 </head>
 <body>
@@ -21,17 +22,23 @@
         <h2>Downloads</h2>
         <p>Get ready to play Fruity on your favorite device!</p>
 
-        <div style="margin-top: 3rem;">
-            <h3>🤖 Android (Indus AppStore / Google Play)</h3>
-            <div style="margin-top: 1rem;">
-                <img src="indus-qr.png" alt="Indus Appstore QR Code" style="width: 150px; display: block; margin-bottom: 1rem;">
-                <a href='https://indusapp.store/cv467mvv'><img alt='Get it on Indus Appstore' src='https://docstore.indusappstore.com/public/external/developerdashboard-static/badge-black-full-color-english.png' style="height: 60px;" /></a>
+        <div class="cards-container">
+            <div class="card">
+                <h3><span class="mdi mdi-android" style="color: #3DDC84; font-size: 1.5rem;"></span> Android</h3>
+                <p>Indus AppStore / Google Play</p>
+                <div style="margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                    <img src="indus-qr.png" alt="Indus Appstore QR Code" style="width: 150px; display: block; margin-bottom: 1rem;">
+                    <a href='https://indusapp.store/cv467mvv' class="store-badge"><img alt='Get it on Indus Appstore' src='https://docstore.indusappstore.com/public/external/developerdashboard-static/badge-black-full-color-english.png' style="height: 60px;" /></a>
+                </div>
             </div>
-        </div>
 
-        <div style="margin-top: 3rem;">
-            <h3>🍏 iOS (App Store)</h3>
-            <p style="font-size: 1.2rem; font-weight: bold; color: var(--error);">Coming Soon!</p>
+            <div class="card">
+                <h3><span class="mdi mdi-apple" style="font-size: 1.5rem;"></span> iOS</h3>
+                <p>App Store</p>
+                <div style="margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                    <p style="font-size: 1.2rem; font-weight: bold; color: #ff4d4d; margin-top: 2rem;">Coming Soon!</p>
+                </div>
+            </div>
         </div>
     </div>
 
